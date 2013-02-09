@@ -29,12 +29,20 @@ for k, e in string.gmatch(uri, '/view/([a-z0-9A-Z]+)/([a-z0-9A-Z]+)$') do
     ngx.log(ngx.ERR, "key is: " .. key .. " | Edit key is: " .. keyEdit)
 end
 
+-- Unfortunately, lua lacks POSIX regex, so we have to do two pattern matching
+if keyEdit == nil then
+    for k, e in string.gmatch(uri, '/view/([a-z0-9A-Z]+)$') do
+        key     = k
+        ngx.log(ngx.ERR, "key is: " .. key)
+    end
+end
+
 if key == nil then
-   -- It's not a valid Shorten View Resource key, die now biatch
-   ngx.status = ngx.HTTP_GONE
-   ngx.say(uri, ': You provided an invalid redirection (target mismatch).')
-   ngx.log(ngx.ERR, 'Resource was not an HTTP link (http nor https). Resource provided: ', uri)
-   ngx.exit(ngx.HTTP_OK)
+    -- It's not a valid Shorten View Resource key, die now biatch
+    ngx.status = ngx.HTTP_GONE
+    ngx.say(uri, ': You provided an invalid redirection (target mismatch).')
+    ngx.log(ngx.ERR, 'Resource was not an HTTP link (http nor https). Resource provided: ', uri)
+    ngx.exit(ngx.HTTP_OK)
 end
 
 -- Initialize redis
@@ -66,5 +74,8 @@ else
     ngx.header['X-DT-Redirect-ctime'] = red:hget(key, 'ctime')
     ngx.header['X-DT-Redirect-Requested'] = red:hget(key, 'requested')
      
-    ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="http://localhost/' .. key .. '">http://localhost/' .. key .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a> <hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="http://localhost/edit/' .. keyEdit .. '">http://localhost/edit/' .. keyEdit .. '</a></h3></center></body></html>')
+    ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="http://localhost/' .. key .. '">http://localhost/' .. key .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a>')
+    if keyEdit ~= nil then
+        ngx.say('<hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="http://localhost/edit/' .. keyEdit .. '">http://localhost/edit/' .. keyEdit .. '</a></h3></center></body></html>')
+    end
 end

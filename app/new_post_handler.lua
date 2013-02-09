@@ -52,20 +52,21 @@ end
 --
 ngx.header.content_type = 'text/html';
 ngx.req.read_body()
-local args              = ngx.req.get_post_args(1000)
+local redirHost         = ngx.req.get_post_args(1)['host']
+local virtualhost       = ngx.req.get_headers()['Host']
 
-if args['host'] == null or 
-   args['host'] == ngx.null or
-   string.find(string.lower(args['host']), 'https?://') == nil then
+if redirHost == null or 
+   redirHost == ngx.null or
+   string.find(string.lower(redirHost), '^https?://') == nil then
 
    -- It's not a HTTP Resource, die now biatch
    ngx.status = ngx.HTTP_GONE
-   ngx.say(args['host'], ': You provided an invalid redirection (target is not a hypertext resource).')
-   ngx.log(ngx.ERR, 'Resource was not a HTTP link (http nor https). Resource provided: ', args['host'])
+   ngx.say(redirHost, ': You provided an invalid redirection (target is not a hypertext resource).')
+   ngx.log(ngx.ERR, 'Resource was not a HTTP link (http nor https). Resource provided: ', redirHost)
    ngx.exit(ngx.HTTP_OK)
 end
 
-ok, err = red:hmset(key, 'host', args['host'], 'ctime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', tabletostr(ngx.req.get_headers()))
+ok, err = red:hmset(key, 'host', redirHost, 'ctime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', tabletostr(ngx.req.get_headers()))
 if not ok then
     ngx.say('failed to storage candidate hash: ', err)
     return

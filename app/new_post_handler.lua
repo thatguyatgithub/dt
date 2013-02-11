@@ -31,6 +31,17 @@ function tabletostr(s)
     return table.concat(t,'|')
 end
 
+function buildURL(domain, key, role, keyEdit)
+    local temporalURL = 'http://' .. domain  
+    if role then 
+        temporalURL = temporalURL .. '/' .. role 
+    end ; temporalURL = temporalURL .. '/' .. key ; 
+    if keyEdit then 
+        temporalURL = temporalURL .. '/' .. keyEdit
+    end
+    return temporalURL
+end
+
 -- Init random seed
 --
 local key        = baseEncode(math.random(56800235584))
@@ -66,16 +77,10 @@ if redirHost == null or
    ngx.exit(ngx.HTTP_OK)
 end
 
-ok, err = red:hmset(key, 'host', redirHost, 'ctime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', tabletostr(ngx.req.get_headers()))
+ok, err = red:hmset(key, 'host', redirHost, 'keyEdit', keyEdit, 'ctime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', tabletostr(ngx.req.get_headers()))
 if not ok then
-    ngx.say('failed to storage candidate hash: ', err)
+    ngx.say('failed to storage candidate redirection hash: ', err)
     return
 else
-    ok, err = red:hset(keyEdit, 'srckey', key)
-    if not ok then
-        ngx.say('failed to storage candidate hash edition: ', err)
-        return
-    else
-        return ngx.redirect('http://localhost/view/' .. key .. '/' .. keyEdit, ngx.HTTP_MOVED_TEMPORARILY)
-    end
+    return ngx.redirect(buildURL(virtualhost, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
 end

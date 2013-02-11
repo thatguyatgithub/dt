@@ -1,13 +1,11 @@
 -- functions definitions
 --
-local math  = math
-local len   = string.len
-local find  = string.find
-local strip = string.sub
+local gmatch            = string.gmatch
 
 -- Param definitions
 --
-local uri = ngx.var.uri
+local uri               = ngx.var.uri
+local virtualhost       = ngx.req.get_headers()['Host']
 
 -- Local functions
 --
@@ -19,19 +17,31 @@ function tabletostr(s)
     return table.concat(t,'|')
 end
 
+function buildURL(domain, key, role, keyEdit)
+    local temporalURL = 'http://' .. domain  
+    if role then 
+        temporalURL = temporalURL .. '/' .. role 
+    end ; temporalURL = temporalURL .. '/' .. key ; 
+    if keyEdit then 
+        temporalURL = temporalURL .. '/' .. keyEdit
+    end
+    return temporalURL
+end
+
 -- Initiate GET /view validator
 --
 ngx.header.content_type = 'text/html';
 
-for k, e in string.gmatch(uri, '/view/([a-z0-9A-Z]+)/([a-z0-9A-Z]+)$') do
+for k, e in gmatch(uri, '/view/([a-z0-9A-Z]+)/([a-z0-9A-Z]+)$') do
     key     = k
     keyEdit = e
     ngx.log(ngx.ERR, "key is: " .. key .. " | Edit key is: " .. keyEdit)
 end
 
--- Unfortunately, lua lacks POSIX regex, so we have to do two pattern matching
 if keyEdit == nil then
-    for k, e in string.gmatch(uri, '/view/([a-z0-9A-Z]+)$') do
+    -- Since lua lacks POSIX regex, we have to go by two pattern matching.
+    -- So if !keyEdit -> launch another pattern matching to get 'key'  
+    for k, e in gmatch(uri, '/view/([a-z0-9A-Z]+)$') do
         key     = k
         ngx.log(ngx.ERR, "key is: " .. key)
     end
@@ -76,6 +86,7 @@ else
      
     ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="http://localhost/' .. key .. '">http://localhost/' .. key .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a>')
     if keyEdit ~= nil then
-        ngx.say('<hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="http://localhost/edit/' .. keyEdit .. '">http://localhost/edit/' .. keyEdit .. '</a></h3></center></body></html>')
+        eURL = buildURL(virtualhost, key, 'edit', keyEdit)
+        ngx.say('<hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="' .. eURL .. '">' .. eURL .. '</a></h3></center></body></html>')
     end
 end

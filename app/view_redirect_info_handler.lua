@@ -1,11 +1,11 @@
 -- functions definitions
 --
-local gmatch            = string.gmatch
+local gmatch        = string.gmatch
 
 -- Param definitions
 --
-local uri               = ngx.var.uri
-local virtualhost       = ngx.req.get_headers()['Host']
+local uri           = ngx.var.uri
+local virtualhost   = ngx.req.get_headers()['Host']
 
 -- Local functions
 --

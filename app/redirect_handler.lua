@@ -1,8 +1,8 @@
--- Param definitions
+-- param definitions
 local uri = ngx.var.uri
 
--- Initialize redis
-local redis = require 'resty.redis'
+-- initialize redis
+local redis = require 'redis'
 local red = redis:new()
 red:set_timeout(100)  -- in miliseconds  
 

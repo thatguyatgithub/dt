@@ -1,36 +1,15 @@
--- functions definitions
+-- helpers definitions
 --
 local gmatch        = string.gmatch
+local utils         = require 'utils'
 
--- Param definitions
+-- static definitions
 --
 local uri           = ngx.var.uri
 local newhost       = ngx.req.get_uri_args(1)['newhost'] 
 local virtualhost   = ngx.req.get_headers()['Host']
 
--- Local functions
---
-function tabletostr(s)
-    local t = { }
-    for k,v in pairs(s) do
-        t[#t+1] = k .. ':' .. v
-    end
-    return table.concat(t,'|')
-end
-
-function buildURL(domain, key, role, keyEdit)
-    local temporalURL = 'http://' .. domain
-    if role then
-        temporalURL = temporalURL .. '/' .. role
-    end
-    temporalURL = temporalURL .. '/' .. key
-    if keyEdit then
-        temporalURL = temporalURL .. '/' .. keyEdit
-    end
-    return temporalURL
-end
-
--- Initiate GET /edit validator
+-- initiate GET /edit validator
 --
 ngx.header.content_type = 'text/html';
 
@@ -48,9 +27,9 @@ if keyEdit == nil then
     ngx.exit(ngx.HTTP_OK)
 end
 
--- Initialize redis
+-- initialize redis
 --
-local redis = require 'resty.redis'
+local redis = require 'redis'
 local red = redis:new()
 red:set_timeout(100)  -- in miliseconds
 
@@ -90,18 +69,16 @@ if newhost == nil then
 elseif type(newhost) == string or 
     string.find(string.lower(newhost), '^https?://') then
 
-    ok, err = red:hmset(key, 'host', newhost, 'keyEdit', keyEdit, 'mtime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', tabletostr(ngx.req.get_headers()))
+    ok, err = red:hmset(key, 'host', newhost, 'keyEdit', keyEdit, 'mtime', os.time(), 'ip', ngx.var.remote_addr, 'orig_headers', utils.tabletostr(ngx.req.get_headers()))
     if not ok then
         ngx.say('failed to storage candidate redirection hash: ', err)
         return
     else
-        return ngx.redirect(buildURL(virtualhost, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
+        return ngx.redirect(utils.buildURL(virtualhost, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
     end
-
 else
     ngx.status = ngx.HTTP_GONE
     ngx.say('Invalid new redirection host: ', newhost )
     ngx.log(ngx.ERR, 'Invalid new redirection host: ', newhost )
     ngx.exit(ngx.HTTP_OK)
 end
-

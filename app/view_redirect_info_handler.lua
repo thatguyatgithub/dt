@@ -6,8 +6,8 @@ local utils         = require 'utils'
 -- static definitions
 --
 local uri           = ngx.var.uri
-local virtualhost   = ngx.req.get_headers()['Host']
-
+local config        = require 'config'
+local useDomain     = config.getDomain(ngx.req.get_headers()['Host'])
 
 -- initiate GET /view validator
 --
@@ -65,9 +65,10 @@ else
     ngx.header['X-DT-Redirect-ctime'] = red:hget(key, 'ctime')
     ngx.header['X-DT-Redirect-Requested'] = red:hget(key, 'requested')
      
-    ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="http://localhost/' .. key .. '">http://localhost/' .. key .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a>')
+    vURL = utils.buildURL(useDomain, key)
+    ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="' .. vURL .. '">' .. vURL .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a>')
     if keyEdit ~= nil then
-        eURL = utils.buildURL(virtualhost, key, 'edit', keyEdit)
+        eURL = utils.buildURL(useDomain, key, 'edit', keyEdit)
         ngx.say('<hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="' .. eURL .. '">' .. eURL .. '</a></h3></center></body></html>')
     end
 end

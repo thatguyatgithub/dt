@@ -3,6 +3,18 @@
 local random        = math.random
 local len           = string.len
 local utils         = require 'utils'
+
+-- parse body
+--
+ngx.req.read_body()
+
+-- static definitions
+--
+local uri           = ngx.var.uri
+local config        = require 'config'
+local useDomain     = config.getDomain(ngx.req.get_headers()['Host'])
+local redirHost     = ngx.req.get_post_args(1)['host']
+
 -- Init random seed
 local key           = utils.baseEncode(random(56800235584))
 local keyEdit       = utils.baseEncode(random(989989961727)) -- higher trigers interval is empty at 'random' 
@@ -24,9 +36,6 @@ end
 -- parse POST body
 --
 ngx.header.content_type = 'text/html';
-ngx.req.read_body()
-local redirHost         = ngx.req.get_post_args(1)['host']
-local virtualhost       = ngx.req.get_headers()['Host']
 
 if redirHost == null or 
    redirHost == ngx.null or
@@ -44,5 +53,5 @@ if not ok then
     ngx.say('failed to storage candidate redirection hash: ', err)
     return
 else
-    return ngx.redirect(utils.buildURL(virtualhost, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
+    return ngx.redirect(utils.buildURL(useDomain, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
 end

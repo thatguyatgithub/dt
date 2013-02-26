@@ -24,13 +24,14 @@ function tabletostr(s)
 end
 
 function buildURL(domain, key, role, keyEdit)
-    local temporalURL = 'http://' .. domain  
+    local temporalURL = domain  
     if role then 
         temporalURL = temporalURL .. '/' .. role 
     end ; temporalURL = temporalURL .. '/' .. key ; 
     if keyEdit then 
         temporalURL = temporalURL .. '/' .. keyEdit
     end
+
     return temporalURL
 end
 

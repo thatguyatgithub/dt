@@ -2,6 +2,7 @@
 --
 local gmatch        = string.gmatch
 local utils         = require 'utils'
+local string        = string
 
 -- static definitions
 --
@@ -64,7 +65,8 @@ end
 -- Up this moment, we have a valid set of credentials
 if newhost == nil then
     ngx.log(ngx.ERR, ngx.var.remote_addr, ': Requested modification for ', uri)
-    ngx.say('<html> <head> <meta charset="utf-8"> <title>DT - URL shortening Service</title> <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.1.1/css/bootstrap.min.css"> </head> <body style="padding-top: 50px;"> <div class="container"> <form id="form" action="/edit/', key, '/', keyEdit, '" method="get" class="form-horizontal form-inline"> <div class="input-append"> <input type="text" id="newhost" name="newhost" class="input-xxlarge input-block-level" placeholder="Insert the NEW url redirection here"/> <button class="btn btn-short btn-primary" type="submit">Load</button> </div> </form> </div> </body> </html>')
+    local edit_content = utils.readFile(ngx.var.edit_html)
+    ngx.say(string.format(edit_content, key, keyEdit))
 
 elseif type(newhost) == string or 
     string.find(string.lower(newhost), '^https?://') then

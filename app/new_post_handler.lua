@@ -11,8 +11,6 @@ ngx.req.read_body()
 -- static definitions
 --
 local uri           = ngx.var.uri
-local config        = require 'config'
-local useDomain     = config.getDomain(ngx.req.get_headers()['Host'])
 local redirHost     = ngx.req.get_post_args(1)['host']
 
 -- Init random seed
@@ -53,5 +51,5 @@ if not ok then
     ngx.say('failed to storage candidate redirection hash: ', err)
     return
 else
-    return ngx.redirect(utils.buildURL(useDomain, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
+    return ngx.redirect(utils.buildURL(ngx.var.base_url, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
 end

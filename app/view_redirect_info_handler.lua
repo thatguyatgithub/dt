@@ -7,8 +7,6 @@ local string        = string
 -- static definitions
 --
 local uri           = ngx.var.uri
-local config        = require 'config'
-local useDomain     = config.getDomain(ngx.req.get_headers()['Host'])
 
 -- initiate GET /view validator
 --
@@ -70,7 +68,7 @@ else
         local view_content = utils.readFile(ngx.var.view_html)
         ngx.say(string.format(view_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res))
     else
-        local eURL = utils.buildURL(virtualhost, key, 'edit', keyEdit)
+        local eURL = utils.buildURL(ngx.var.base_url, key, 'edit', keyEdit)
         local view_and_edit_content = utils.readFile(ngx.var.view_and_edit_html)
         ngx.say(string.format(view_and_edit_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res, eURL, eURL))
     end

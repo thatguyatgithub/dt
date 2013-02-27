@@ -7,8 +7,6 @@ local string        = string
 -- static definitions
 --
 local uri           = ngx.var.uri
-local config        = require 'config'
-local useDomain     = config.getDomain(ngx.req.get_headers()['Host'])
 local newhost       = ngx.req.get_uri_args(1)['newhost'] 
 
 -- initiate GET /edit validator
@@ -77,7 +75,7 @@ elseif type(newhost) == string or
         ngx.say('failed to storage candidate redirection hash: ', err)
         return
     else
-        return ngx.redirect(utils.buildURL(useDomain, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
+        return ngx.redirect(utils.buildURL(ngx.var.base_url, key, 'view', keyEdit), ngx.HTTP_MOVED_TEMPORARILY)
     end
 else
     ngx.status = ngx.HTTP_GONE

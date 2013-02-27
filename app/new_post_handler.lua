@@ -1,7 +1,6 @@
 -- helpers definitions
 --
 local random        = math.random
-local len           = string.len
 local utils         = require 'utils'
 
 -- parse body

@@ -2,13 +2,11 @@
 --
 local math          = math
 local pairs         = pairs
-local sub           = string.sub
-local len           = string.len 
 local concat        = table.concat
 local open          = io.open
 
 local BASE          = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-local BASE_lenght   = len(BASE)
+local BASE_lenght   = BASE:len()
 
 -- init module engine
 -- 
@@ -46,7 +44,7 @@ function baseEncode(num)
     local rem 
     while num ~= 0 do
         num, rem = divmod(num, BASE_lenght)
-        encoding = encoding .. sub(BASE, rem, rem)
+        encoding = encoding .. BASE:sub(rem, rem)
     end
     return encoding
 end
@@ -61,9 +59,13 @@ function readFile(path)
         end
         text = text .. line .. "\n"
     end
-    return sub(text, 1, -2)
+    return text:sub(1, -2)
 end
 
-function starts(string, start)
-   return sub(string, 1, len(start)) == start
+function starts(str, start)
+   return str:sub(1, start:len()) == start
+end
+
+function format(str, var)
+  return (str:gsub('($%b{})', function(w) return var[w:sub(3, -2)] or w end))
 end

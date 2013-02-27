@@ -2,6 +2,7 @@
 --
 local gmatch        = string.gmatch
 local utils         = require 'utils'
+local string        = string
 
 -- static definitions
 --
@@ -60,15 +61,17 @@ if  res == ngx.null or type(res) == null then
     ngx.log(ngx.ERR, 'failed to get redirection for key: ', key)
     return ngx.redirect('https://duckduckgo.com/?q=Looking+For+Something?', ngx.HTTP_MOVED_TEMPORARILY)
 else
-    red:hset(key, 'atime', os.time()) 
+    red:hset(key, 'atime', os.time())
     red:hincrby(key, 'requested', 1)
     ngx.header['X-DT-Redirect-ctime'] = red:hget(key, 'ctime')
     ngx.header['X-DT-Redirect-Requested'] = red:hget(key, 'requested')
-     
-    vURL = utils.buildURL(useDomain, key)
-    ngx.say('<html><head><title>Shortened URL Service</title></head><body bgcolor=white><center><h1>Your Shortened URL is</h1><h2><a href="' .. vURL .. '">' .. vURL .. '</a></h2><h2>Your Shortened URL service points to</h2><h2><h2><a href=' .. res .. '>' .. res .. '</a>')
-    if keyEdit ~= nil then
-        eURL = utils.buildURL(useDomain, key, 'edit', keyEdit)
-        ngx.say('<hr><center><h3>You Can Edit Your Shortened URL Using</h3><h3><a href="' .. eURL .. '">' .. eURL .. '</a></h3></center></body></html>')
+
+    if keyEdit == nil then
+        local view_content = utils.readFile(ngx.var.view_html)
+        ngx.say(string.format(view_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res))
+    else
+        local eURL = utils.buildURL(virtualhost, key, 'edit', keyEdit)
+        local view_and_edit_content = utils.readFile(ngx.var.view_and_edit_html)
+        ngx.say(string.format(view_and_edit_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res, eURL, eURL))
     end
 end

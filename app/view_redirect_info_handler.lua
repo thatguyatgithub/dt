@@ -1,8 +1,8 @@
 -- helpers definitions
 --
-local gmatch        = string.gmatch
-local utils         = require 'utils'
-local string        = string
+local utils                 = require 'utils'
+local view_content          = utils.readFile(ngx.var.view_html)
+local view_and_edit_content = utils.readFile(ngx.var.view_and_edit_html)
 
 -- static definitions
 --
@@ -12,7 +12,7 @@ local uri           = ngx.var.uri
 --
 ngx.header.content_type = 'text/html';
 
-for k, e in gmatch(uri, '/view/([a-z0-9A-Z]+)/([a-z0-9A-Z]+)$') do
+for k, e in uri:gmatch('/view/([a-z0-9A-Z]+)/([a-z0-9A-Z]+)$') do
     key     = k
     keyEdit = e
     ngx.log(ngx.ERR, "key is: " .. key .. " | Edit key is: " .. keyEdit)
@@ -21,7 +21,7 @@ end
 if keyEdit == nil then
     -- Since lua lacks POSIX regex, we have to go by two pattern matching.
     -- So if !keyEdit -> launch another pattern matching to get 'key'  
-    for k, e in gmatch(uri, '/view/([a-z0-9A-Z]+)$') do
+    for k, e in uri:gmatch('/view/([a-z0-9A-Z]+)$') do
         key     = k
         ngx.log(ngx.ERR, "key is: " .. key)
     end
@@ -65,11 +65,16 @@ else
     ngx.header['X-DT-Redirect-Requested'] = red:hget(key, 'requested')
 
     if keyEdit == nil then
-        local view_content = utils.readFile(ngx.var.view_html)
-        ngx.say(string.format(view_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res))
+        local template_data = {base_url=ngx.var.base_url,
+                                key=key,
+                                url_to_redirect=res}
+        ngx.say(utils.format(view_content, template_data))
     else
         local eURL = utils.buildURL(ngx.var.base_url, key, 'edit', keyEdit)
-        local view_and_edit_content = utils.readFile(ngx.var.view_and_edit_html)
-        ngx.say(string.format(view_and_edit_content, ngx.var.base_url, key, ngx.var.base_url, key, res, res, eURL, eURL))
+        local template_data = {base_url=ngx.var.base_url,
+                                key=key,
+                                url_to_redirect=res,
+                                edition_url=eURL}
+        ngx.say(utils.format(view_and_edit_content, template_data))
     end
 end

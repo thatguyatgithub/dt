@@ -3,6 +3,7 @@
 local gmatch        = string.gmatch
 local utils         = require 'utils'
 local string        = string
+local edit_content  = utils.readFile(ngx.var.edit_html)
 
 -- static definitions
 --
@@ -64,8 +65,7 @@ end
 -- Up this moment, we have a valid set of credentials
 if newhost == nil then
     ngx.log(ngx.ERR, ngx.var.remote_addr, ': Requested modification for ', uri)
-    local edit_content = utils.readFile(ngx.var.edit_html)
-    ngx.say(string.format(edit_content, key, keyEdit))
+    ngx.say(utils.format(edit_content, {key=key, keyEdit=keyEdit}))
 
 elseif type(newhost) == string or 
     string.find(string.lower(newhost), '^https?://') then
